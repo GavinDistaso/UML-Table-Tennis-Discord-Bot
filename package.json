@@ -1,0 +1,17 @@
+{
+    "name": "UML Table Tennis Bot",
+    "version": "1.0.0",
+    "description": "",
+    "main": "",
+    "type": "module",
+    "scripts": {
+        "dev": "bun ./src/main.js"
+    },
+    "author": "Gavin Distaso",
+    "license": "GPL-3.0",
+    "dependencies": {
+        "discord.js": "^14.25.1",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.7"
+    }
+}
