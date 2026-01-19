@@ -36,6 +36,14 @@ function databaseFetchOne(query){
     })
 }
 
+function databaseFetch(query){
+    return new Promise((res, rej) => {
+        database.all(query, (err, rows)=>{
+            res(rows)
+        })
+    })
+}
+
 export async function playerExists(discordID){
     const res = await databaseFetchOne(`SELECT * FROM ratings WHERE userDiscordID="${discordID}";`)
 
@@ -72,11 +80,30 @@ export function setPlayerELO(discordID, ELO){
     )
 }
 
+export function setPlayerMatchesPlayed(discordID, matchesPlayed){
+    database.exec(
+        `
+        UPDATE ratings
+        SET numMatches=${matchesPlayed}
+        WHERE userDiscordID="${discordID}"
+        `
+    )
+}
+
 export async function getPlayerData(discordID){
     return await databaseFetchOne(
         `
         SELECT * FROM ratings
         WHERE userDiscordID="${discordID}"
+        `
+    )
+}
+
+export async function getRankings() {
+    return await databaseFetch(
+        `
+        SELECT nickname, ELO, numMatches, userDiscordID FROM ratings
+        ORDER BY ELO DESC
         `
     )
 }
