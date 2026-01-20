@@ -1,4 +1,4 @@
-const { Client, Events, GatewayIntentBits, Collection, ChatIn, REST, Routes} = require('discord.js');
+const { Client, Events, GatewayIntentBits, Collection, ChatIn, REST, Routes, MessageFlags} = require('discord.js');
 const { token, clientID } = require('./../config.json');
 
 const eloSystem = require('./elo')
@@ -6,6 +6,10 @@ const eloSystem = require('./elo')
 const db = require('./database');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+const eBoardRoleID = '832388508458287132';
+
+const adminBypassUserID = '279386278112264193'; // just my id for testing
 
 client.once(Events.ClientReady, (client) => {
 	console.log(`Bot running... "${client.user.tag}"`);
@@ -22,6 +26,7 @@ let commands = [
     ...require('./commands/playerInfo').commands,
     ...require('./commands/matches').commands,
     ...require('./commands/rankings').commands,
+    ...require('./commands/util').commands,
 ]
 
 let apiCommands = [];
@@ -40,11 +45,16 @@ const data = await rest.put(Routes.applicationCommands(clientID), { body: apiCom
 //
 
 client.on('interactionCreate', async (interaction) => {
+    let isEboard = interaction.member.roles.cache.has(eBoardRoleID) || interaction.user.id == adminBypassUserID;
+
     if (interaction.isCommand()) {
         const command = client.slashCommands.get(interaction.commandName);
 
-        if(command){
+        if((command['eboardOnly'] && command['eboardOnly'] == true && isEboard) || !command['eboardOnly']){
             await command.func(interaction);
+        }
+        else {
+            await interaction.reply({content: "insufficient permissions", flags: [MessageFlags.Ephemeral]})
         }
 
     }

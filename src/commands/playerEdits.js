@@ -22,7 +22,8 @@ exports.commands = [
             db.setPlayerNick(target.id, nickname);
 
             interaction.reply(`Set <@${target.id}>'s nickname to "${nickname}"`)
-        }
+        },
+        eboardOnly: true
     },
     {
         command: (new SlashCommandBuilder())
@@ -42,7 +43,8 @@ exports.commands = [
             db.setPlayerELO(target.id, elo);
 
             interaction.reply(`Set <@${target.id}>'s ELO to ${elo}`)
-        }
+        },
+        eboardOnly: true
     },
     {
         command: (new SlashCommandBuilder())
@@ -62,6 +64,7 @@ exports.commands = [
             db.setPlayerMatchesPlayed(target.id, matchesPlayed);
 
             interaction.reply(`Set <@${target.id}>'s matches played to ${matchesPlayed}`)
-        }
+        },
+        eboardOnly: true
     }
 ]
