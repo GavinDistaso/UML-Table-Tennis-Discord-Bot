@@ -108,6 +108,15 @@ export async function getRankings() {
     )
 }
 
+export async function getPlayerIdByNick(nickname) {
+    return (await databaseFetchOne(
+        `
+        SELECT userDiscordID FROM ratings
+        WHERE nickname = "${nickname}" COLLATE NOCASE
+        `
+    ))['userDiscordID']
+}
+
 /* Game functions */
 
 export async function reportGame(playerIdA, playerIdB, finalScoreA, finalScoreB){

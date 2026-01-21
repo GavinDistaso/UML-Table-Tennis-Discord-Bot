@@ -18,7 +18,7 @@ exports.commands = [
             const nickname = interaction.options.getString('nickname');
             const target = interaction.options.getUser('user');
 
-            await db.createPlayerEntryIfNotExist(target.id, nickname, 0);
+            await db.createPlayerEntryIfNotExist(target.id, nickname, 500);
             db.setPlayerNick(target.id, nickname);
 
             interaction.reply(`Set <@${target.id}>'s nickname to "${nickname}"`)
@@ -60,7 +60,7 @@ exports.commands = [
             const matchesPlayed = parseInt(interaction.options.getNumber('matches_played'));
             const target = interaction.options.getUser('user');
 
-            await db.createPlayerEntryIfNotExist(target.id, target.displayName, 0);
+            await db.createPlayerEntryIfNotExist(target.id, target.displayName, 500);
             db.setPlayerMatchesPlayed(target.id, matchesPlayed);
 
             interaction.reply(`Set <@${target.id}>'s matches played to ${matchesPlayed}`)
