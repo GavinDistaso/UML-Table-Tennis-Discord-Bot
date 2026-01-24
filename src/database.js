@@ -67,17 +67,29 @@ export function setPlayerNick(discordID, nick){
         SET nickname="${nick}"
         WHERE userDiscordID="${discordID}"
         `
-    )
+    );
 }
 
-export function setPlayerELO(discordID, ELO){
+export async function setPlayerELO(discordID, ELO){
+    // TODO: FIX
+    if(await playerExists(discordID)){
+        let currentElo = (await getPlayerData(discordID))['ELO'];
+
+        database.exec(
+            `
+            INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff)
+            VALUES ("${discordID}", "0", 0, 0, ${ELO - currentElo}, 0)
+            `
+        );
+    }
+
     database.exec(
         `
         UPDATE ratings
         SET ELO=${ELO}
         WHERE userDiscordID="${discordID}"
         `
-    )
+    );
 }
 
 export function setPlayerMatchesPlayed(discordID, matchesPlayed){
@@ -122,6 +134,43 @@ export async function getPlayerIdByNick(nickname) {
     else {
         return undefined;
     }
+}
+
+/* */
+
+export async function getPlayerEloHistory(playerId){
+    let gameResultsEntries = 
+        await databaseFetch(
+            `
+            SELECT playerAEloDiff FROM games WHERE playerID_A="${playerId}"
+            `
+        );
+    gameResultsEntries = gameResultsEntries.concat(
+        await databaseFetch(
+            `
+            SELECT playerBEloDiff FROM games WHERE playerID_B="${playerId}"
+            `
+        )
+    );
+
+    let elo = (await getPlayerData(playerId))['ELO'];
+    const endingElo = elo;
+
+    const results = gameResultsEntries.reverse().map((entry)=>{
+        elo -= Object.values(entry)[0];
+        return elo;
+    }).reverse();
+
+    results.push(endingElo)
+
+    return results;
+}
+
+export function getAllPlayerNicknames(){
+    return ['a', 'b', 'c'];
+    // return (await databaseFetch('SELECT nickname FROM ratings')).map((entry)=>{
+    //     return entry['nickname'];
+    // })
 }
 
 /* Game functions */
