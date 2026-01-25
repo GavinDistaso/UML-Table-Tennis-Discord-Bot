@@ -11,7 +11,7 @@ exports.commands = [
             )
             .addStringOption((option) =>
                 option
-                .setName('nickname').setDescription('nickname')
+                .setName('nickname').setDescription('nickname').setRequired(true)
                 .setMaxLength(100).setMinLength(1).setRequired(true)
             ),
         func: async (interaction)=>{
@@ -44,7 +44,7 @@ exports.commands = [
             const target = interaction.options.getUser('user');
 
             await db.createPlayerEntryIfNotExist(target.id, target.displayName, 0);
-            db.setPlayerELO(target.id, elo);
+            await db.setPlayerELO(target.id, elo);
 
             interaction.reply(`Set <@${target.id}>'s ELO to ${elo}`)
         },

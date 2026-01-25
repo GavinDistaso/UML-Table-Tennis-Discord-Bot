@@ -71,8 +71,8 @@ export function setPlayerNick(discordID, nick){
     );
 }
 
-export async function setPlayerELO(discordID, ELO){
-    if(await playerExists(discordID)){
+export async function setPlayerELO(discordID, ELO, reportChange=true){
+    if(await playerExists(discordID) && reportChange){
         let currentElo = (await getPlayerData(discordID))['ELO'];
 
         database.exec(
@@ -149,6 +149,10 @@ export async function getPlayerEloHistory(playerId){
             `
         );
 
+    if(!gameResultsEntries){
+        return [-1]
+    }
+
     let elo = 0;
 
     const results = gameResultsEntries.map((entry)=>{
@@ -179,8 +183,8 @@ export async function reportGame(playerIdA, playerIdB, finalScoreA, finalScoreB)
     );
 
 
-    setPlayerELO(playerIdA, matchResults.newEloA);
-    setPlayerELO(playerIdB, matchResults.newEloB);
+    setPlayerELO(playerIdA, matchResults.newEloA, false);
+    setPlayerELO(playerIdB, matchResults.newEloB, false);
 
     // add entry
 
