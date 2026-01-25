@@ -209,21 +209,3 @@ export async function reportGame(playerIdA, playerIdB, finalScoreA, finalScoreB)
 
     return [matchResults.eloDiffA, matchResults.eloDiffB];
 }
-
-/* */
-
-export async function dev_repair_set_all_starting_elo(elo=500){
-    let ids = await databaseFetch(`SELECT userDiscordID FROM ratings`);
-
-    database.exec(`ALTER TABLE games ADD timestamp INTEGER;`);
-    database.exec(`UPDATE games SET timestamp = 1769306012 + rowid;`);
-
-    ids.map(v=>v['userDiscordID']).forEach(id=>{
-        database.exec(
-            `
-            INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff, timestamp)
-            VALUES ("${id}", "0", 0, 0, ${elo}, 0, 404)
-            `
-        )
-    })
-}
