@@ -18,7 +18,11 @@ exports.commands = [
             const nickname = interaction.options.getString('nickname');
             const target = interaction.options.getUser('user');
 
-            await db.createPlayerEntryIfNotExist(target.id, nickname, 500);
+            if(!(await db.playerExists(target.id))){
+                interaction.reply("Player doesnt exist, use `/set_elo` to add them");
+                return;
+            }
+
             db.setPlayerNick(target.id, nickname);
 
             interaction.reply(`Set <@${target.id}>'s nickname to "${nickname}"`)

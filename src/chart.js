@@ -30,7 +30,7 @@ export async function createChart(playerID){
                 labels: range(eloHistory.length, 0),
                 datasets: [{
                     label: 'ELO',
-                    data: await db.getPlayerEloHistory(playerID),
+                    data: eloHistory,
                     borderColor: 'red'
                 }]
             }

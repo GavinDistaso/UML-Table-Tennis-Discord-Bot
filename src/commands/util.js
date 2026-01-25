@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder} = require('discord.js');
 
+const db = require('../database')
+
 exports.commands = [
     {
         command: (new SlashCommandBuilder())
@@ -16,5 +18,14 @@ exports.commands = [
                 await interaction.reply("Upload fail")
             }
         }
+    },
+    {
+        command: (new SlashCommandBuilder())
+            .setName("dev_fix_sbet500")
+            .setDescription("Rawr"),
+        func: async (interaction)=>{
+            await db.dev_repair_set_all_starting_elo();
+        },
+        eboardOnly: true
     }
 ]

@@ -22,7 +22,8 @@ database.serialize(()=>{
             finalScoreA INTEGER,
             finalScoreB INTEGER,
             playerAEloDiff INTEGER,
-            playerBEloDiff INTEGER
+            playerBEloDiff INTEGER,
+            timestamp INTEGER
         )
         `
     )
@@ -71,14 +72,13 @@ export function setPlayerNick(discordID, nick){
 }
 
 export async function setPlayerELO(discordID, ELO){
-    // TODO: FIX
     if(await playerExists(discordID)){
         let currentElo = (await getPlayerData(discordID))['ELO'];
 
         database.exec(
             `
-            INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff)
-            VALUES ("${discordID}", "0", 0, 0, ${ELO - currentElo}, 0)
+            INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff, timestamp)
+            VALUES ("${discordID}", "0", 0, 0, ${ELO - currentElo}, 0, ${Date.now()})
             `
         );
     }
@@ -130,7 +130,7 @@ export async function getPlayerIdByNick(nickname) {
 
     if(res){
         return res['userDiscordID'];
-    }
+    } 
     else {
         return undefined;
     }
@@ -142,26 +142,19 @@ export async function getPlayerEloHistory(playerId){
     let gameResultsEntries = 
         await databaseFetch(
             `
-            SELECT playerAEloDiff FROM games WHERE playerID_A="${playerId}"
+            SELECT playerAEloDiff, timestamp FROM games WHERE playerID_A="${playerId}"
+            UNION ALL
+            SELECT playerBEloDiff, timestamp FROM games WHERE playerID_B="${playerId}"
+            ORDER BY timestamp ASC
             `
         );
-    gameResultsEntries = gameResultsEntries.concat(
-        await databaseFetch(
-            `
-            SELECT playerBEloDiff FROM games WHERE playerID_B="${playerId}"
-            `
-        )
-    );
 
-    let elo = (await getPlayerData(playerId))['ELO'];
-    const endingElo = elo;
+    let elo = 0;
 
-    const results = gameResultsEntries.reverse().map((entry)=>{
-        elo -= Object.values(entry)[0];
+    const results = gameResultsEntries.map((entry)=>{
+        elo += Object.values(entry)[0];
         return elo;
-    }).reverse();
-
-    results.push(endingElo)
+    });
 
     return results;
 }
@@ -193,8 +186,8 @@ export async function reportGame(playerIdA, playerIdB, finalScoreA, finalScoreB)
 
     database.exec(
         `
-        INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff)
-        VALUES ("${playerIdA}", "${playerIdB}", ${finalScoreA}, ${finalScoreB}, ${matchResults.eloDiffA}, ${matchResults.eloDiffB})
+        INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff, timestamp)
+        VALUES ("${playerIdA}", "${playerIdB}", ${finalScoreA}, ${finalScoreB}, ${matchResults.eloDiffA}, ${matchResults.eloDiffB}, ${Date.now()})
         `
     )
     
@@ -211,4 +204,22 @@ export async function reportGame(playerIdA, playerIdB, finalScoreA, finalScoreB)
     //
 
     return [matchResults.eloDiffA, matchResults.eloDiffB];
+}
+
+/* */
+
+export async function dev_repair_set_all_starting_elo(elo=500){
+    let ids = await databaseFetch(`SELECT userDiscordID FROM ratings`);
+
+    database.exec(`ALTER TABLE games ADD timestamp INTEGER;`);
+    database.exec(`UPDATE games SET timestamp = 1769306012 + rowid;`);
+
+    ids.map(v=>v['userDiscordID']).forEach(id=>{
+        database.exec(
+            `
+            INSERT INTO games (playerID_A, playerID_B, finalScoreA, finalScoreB, playerAEloDiff, playerBEloDiff, timestamp)
+            VALUES ("${id}", "0", 0, 0, ${elo}, 0, 404)
+            `
+        )
+    })
 }
